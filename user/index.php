@@ -23,7 +23,7 @@
             <p class="text-muted mb-5">Efficiently manage medical supplies, medicines, and equipment with role-based access.</p>
             
             <div class="d-grid gap-3">
-                <a href="login.php" class="btn btn-primary btn-lg rounded-pill shadow">Get Started / Log In</a>
+                <a href="login.php" class="btn btn-primary btn-lg rounded-pill shadow">Log In</a>
                 <a href="register.php" class="btn btn-outline-secondary btn-lg rounded-pill">Create Staff Account</a>
             </div>
         </div>
