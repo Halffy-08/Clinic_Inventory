@@ -1,38 +1,48 @@
 <?php
+session_start();
 require_once '../app/conn.php';
 
 $error = ""; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Sanitize username input
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    
-    // Hash the password for security
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    
-    // SECURITY: Force role to 'staff'. 
-    // This ignores any manual HTML tampering by the user.
-    $role = "staff"; 
+    $email_input = trim($_POST["email"] ?? '');
+    $password_input = trim($_POST["password"] ?? '');
+    $role = "staff"; // Forced to staff for this specific page
 
-    // 1. CHECK IF USERNAME ALREADY EXISTS
-    $check_stmt = mysqli_prepare($conn, "SELECT username FROM users WHERE username = ?");
-    mysqli_stmt_bind_param($check_stmt, "s", $username);
-    mysqli_stmt_execute($check_stmt);
-    mysqli_stmt_store_result($check_stmt);
-    
-    if (mysqli_stmt_num_rows($check_stmt) > 0) {
-        $error = "This username is already registered. Please try logging in.";
+    if (empty($email_input) || empty($password_input)) {
+        $error = "Please fill in all fields.";
     } else {
-        // 2. PROCEED WITH INSERT (Using Prepared Statement)
-        $insert_stmt = mysqli_prepare($conn, "INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        mysqli_stmt_bind_param($insert_stmt, "sss", $username, $password, $role);
+        // 1. Check if user already exists using Blind Index
+        $email_index = generateBlindIndex($email_input);
         
-        if (mysqli_stmt_execute($insert_stmt)) {
-            header("Location: login.php?msg=registered");
-            exit();
+        $check_sql = "SELECT id FROM `users` WHERE email = ?";
+        $stmt = $conn->prepare($check_sql);
+        $stmt->bind_param("s", $email_index);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $error = "This email/username is already registered.";
         } else {
-            $error = "Registration failed. Please try again.";
+            // 2. Prepare data for insertion
+            $encrypted_email = encryptData($email_input);
+            $encrypted_role = encryptData($role);
+            $hashed_password = password_hash($password_input, PASSWORD_DEFAULT);
+
+            // 3. Insert new staff record
+            $insert_sql = "INSERT INTO `users` (email, email_index, password, role) VALUES (?, ?, ?, ?)";
+            $insert_stmt = $conn->prepare($insert_sql);
+            $insert_stmt->bind_param("ssss", $encrypted_email, $email, $hashed_password, $encrypted_role);
+
+            if ($insert_stmt->execute()) {
+                echo "<script>alert('Staff Account Created Successfully!'); window.location.href='login.php';</script>";
+                exit();
+            } else {
+                $error = "Registration failed. Please try again.";
+            }
+            $insert_stmt->close();
         }
+        $stmt->close();
     }
 }
 ?>
@@ -49,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         body { background-color: #f0f4f8; min-height: 100vh; display: flex; align-items: center; }
         .register-card { border: none; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         .form-control { border-radius: 10px; padding: 12px; border: 2px solid #eee; }
-        .btn-primary { border-radius: 10px; padding: 12px; font-weight: 600; }
+        .btn-primary { border-radius: 10px; padding: 12px; font-weight: 600; background-color: #0d6efd; }
     </style>
 </head>
 <body>
@@ -73,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <form method="POST">
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Username / Email</label>
-                        <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+                        <input type="text" name="email" class="form-control" placeholder="Enter username" required>
                     </div>
 
                     <div class="mb-4">
@@ -90,3 +100,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <a href="login.php" class="btn btn-link text-decoration-none text-muted small mt-2">Back to Login</a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

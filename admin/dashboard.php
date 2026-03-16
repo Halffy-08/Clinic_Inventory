@@ -2,13 +2,13 @@
 session_start();
 require_once '../app/conn.php';
 
-// Security: Only allow logged-in Admin or Staff
+
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
     header("Location: ../user/login.php");
     exit();
 }
 
-// Fetch all inventory items
+
 $items = mysqli_query($conn, "SELECT * FROM inventory ORDER BY id DESC");
 ?>
 <!DOCTYPE html>
@@ -59,7 +59,7 @@ $items = mysqli_query($conn, "SELECT * FROM inventory ORDER BY id DESC");
         <h3 class="fw-bold">Medical Supplies</h3>
         <span class="badge bg-white text-dark border p-2 shadow-sm">
             <i class="bi bi-person-circle me-1 text-primary"></i> 
-            <?= htmlspecialchars($_SESSION['username']); ?> (<?= ucfirst($_SESSION['role']); ?>)
+            <?= htmlspecialchars($_SESSION['user_id']); ?> (<?= ucfirst($_SESSION['role']); ?>)
         </span>
     </div>
 

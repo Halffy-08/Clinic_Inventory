@@ -2,15 +2,15 @@
 session_start();
 require_once '../app/conn.php';
 
-// Security: Only allow logged-in Staff (or Admin)
-// We specifically check if the role is 'staff' or 'admin'
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
+// Security: Redirect if not logged in as staff
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'staff') {
     header("Location: ../user/login.php");
     exit();
 }
 
-// Fetch all inventory items
-$items = mysqli_query($conn, "SELECT * FROM inventory ORDER BY id DESC");
+// Fetch supplies for viewing only
+$query = "SELECT * FROM supplies";
+$result = $conn->query($query);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -22,7 +22,7 @@ $items = mysqli_query($conn, "SELECT * FROM inventory ORDER BY id DESC");
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         body { background-color: #f8f9fa; }
-        /* Green-themed sidebar for Staff to distinguish from Admin blue */
+     
         .sidebar { min-height: 100vh; background: #ffffff; border-right: 1px solid #dee2e6; position: fixed; width: 250px; }
         .main-content { margin-left: 250px; padding: 30px; }
         .nav-link { color: #495057; font-weight: 500; border-radius: 8px; margin-bottom: 5px; }

@@ -1,33 +1,45 @@
 <?php
-// 1. Correct the path: go up one folder (../) then into app/
-require '../app/conn.php'; 
+require "../app/conn.php";
 
-// 2. Define the Admin details
-$username = "admin@gmail.com";
-$plain_password = "admin123";
-$role = "admin";
+$key = "Key@123456789";
+$cipher = "AES-256-CBC";
 
-// 3. Hash the password
-$hashed_password = password_hash($plain_password, PASSWORD_DEFAULT);
+$admin_email = "admin@gmail.com";
+$admin_role = "admin";
+$admin_pass = "Admin123";
 
-// 4. Use $conn (Ensure $conn is the variable name inside app/conn.php)
-$stmt = mysqli_prepare($conn, "INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+function encryptData($data, $cipher, $key) {
+    $iv_length = openssl_cipher_iv_length($cipher);
+    $iv = openssl_random_pseudo_bytes($iv_length);
+    $encrypted = openssl_encrypt($data, $cipher, $key, OPENSSL_RAW_DATA, $iv);
+ 
+    return base64_encode($iv . $encrypted);
+}
+
+
+$encrypted_email = encryptData($admin_email, $cipher, $key);
+$encrypted_role = encryptData($admin_role, $cipher, $key);
+
+$hashed_password = password_hash($admin_pass, PASSWORD_DEFAULT);
+
+
+$sql = "INSERT INTO users (email, role, password) VALUES (?, ?, ?)";
+$stmt = $conn->prepare($sql);
 
 if ($stmt) {
-    mysqli_stmt_bind_param($stmt, "sss", $username, $hashed_password, $role);
-    
-    if (mysqli_stmt_execute($stmt)) {
-        echo "<h3>Success!</h3>";
-        echo "Admin account created.<br>";
-        echo "Username: <b>$username</b><br>";
-        echo "Password: <b>$plain_password</b><br>";
-        echo "<br><a href='login.php'>Proceed to Login</a>";
+ 
+    $stmt->bind_param("sss", $encrypted_email, $encrypted_role, $hashed_password);
+
+    if ($stmt->execute()) {
+        echo "<h3>Admin user created successfully!</h3>";
+        echo "Email (Encrypted): " . $encrypted_email . "<br>";
+        echo "Role (Encrypted): " . $encrypted_role . "<br>";
+        echo "Password (Hashed): " . $hashed_password . "<br><br>";
+        echo "<a href='login.php'>Go to Login</a>";
     } else {
-        echo "Error: " . mysqli_error($conn);
+        echo "Error: " . $stmt->error;
     }
 } else {
-    // If it still says "Undefined variable $conn", open app/conn.php 
-    // and check if you named the variable something else (like $db or $link).
-    echo "Connection variable error: " . mysqli_error($conn);
+    echo "Prepare failed: " . $conn->error;
 }
 ?>
