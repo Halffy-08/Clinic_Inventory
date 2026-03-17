@@ -5,62 +5,49 @@ require_once '../app/conn.php';
 $error = ""; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $key = "Key@123456789";
-    $cipher = "AES-256-CBC";
-
-    $email_input = trim($_POST["email"] ?? '');
-    $password_input = trim($_POST["password"] ?? '');
+    // We use the $key and $cipher from conn.php automatically
+    $email_input = trim(strtolower($_POST["email"] ?? ''));
+    $password_input = $_POST["password"] ?? '';
 
     if (empty($email_input) || empty($password_input)) {
         $error = "Please fill in all fields.";
     } else {
-        // Fetch all users to decrypt and check manually
-        $sql = "SELECT * FROM `users`"; 
-        $result = $conn->query($sql);
+        // Fast search using the blind index
+        $email_index = generateBlindIndex($email_input);
+        
+        $sql = "SELECT * FROM `users` WHERE email_index = ?"; 
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $email_index);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        $found_user = null;
-
-        if ($result && $result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                // Decrypt the username column (which is called 'email' in your current DB)
-                $decrypted_email = decryptData($row["email"], $cipher, $key);
-                
-                if ($decrypted_email === $email_input) {
-                    $found_user = $row;
-                    break;
-                }
-            }
-        }
-
-        if ($found_user) {
-            if (password_verify($password_input, $found_user['password'])) {
-                // Decrypt the role
-                $decrypted_role = decryptData($found_user["role"], $cipher, $key);
+        if ($row = $result->fetch_assoc()) {
+            if (password_verify($password_input, $row['password'])) {
+                // Decrypt role using conn.php settings
+                $decrypted_role = decryptData($row["role"]);
 
                 session_regenerate_id(true);
-                $_SESSION['user_id'] = $found_user['id'];
+                $_SESSION['user_id'] = $row['id'];
                 $_SESSION['role'] = $decrypted_role;
 
-                if ($decrypted_role === 'admin') {
-                    // Redirecting to the single dashboard file
-                    echo "<script>alert('Welcome Admin!'); window.location.href='../admin/dashboard.php';</script>";
-                } elseif ($decrypted_role === 'staff') {
-                    // Redirecting to the same single dashboard file
+                if ($decrypted_role === 'staff') {
                     echo "<script>alert('Welcome Staff!'); window.location.href='../views/dashboard.php';</script>";
+                    exit();
+                } else if ($decrypted_role === 'admin') {
+                    echo "<script>alert('Welcome Admin!'); window.location.href='../admin/dashboard.php';</script>";
+                    exit();
                 } else {
-                    $error = "Role not recognized: " . $decrypted_role;
+                    $error = "Access Denied: Role not recognized.";
                 }
-                exit();
             } else {
                 $error = "Incorrect password.";
             }
         } else {
-            $error = "User not found.";
+            $error = "User not found. Please check your credentials.";
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,14 +68,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="alert alert-danger small text-center"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
-    <form method="POST">
+    <form method="POST" autocomplete="off">
         <div class="mb-3">
             <label class="form-label">Email Address</label>
-            <input type="email" name="email" class="form-control" required>
+            <input type="email" 
+                   name="email" 
+                   class="form-control" 
+                   required 
+                   autocomplete="username">
         </div>
         <div class="mb-4">
             <label class="form-label">Password</label>
-            <input type="password" name="password" class="form-control" required>
+            <input type="password" 
+                   name="password" 
+                   class="form-control" 
+                   required 
+                   autocomplete="current-password">
         </div>
         <button type="submit" class="btn btn-primary w-100 rounded-pill">Sign In</button>
     </form>

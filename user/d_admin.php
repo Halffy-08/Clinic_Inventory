@@ -1,45 +1,31 @@
 <?php
-require "../app/conn.php";
-
-$key = "Key@123456789";
-$cipher = "AES-256-CBC";
+// Ensure this path is correct for your folder structure
+require "../app/conn.php"; 
 
 $admin_email = "admin@gmail.com";
 $admin_role = "admin";
 $admin_pass = "Admin123";
 
-function encryptData($data, $cipher, $key) {
-    $iv_length = openssl_cipher_iv_length($cipher);
-    $iv = openssl_random_pseudo_bytes($iv_length);
-    $encrypted = openssl_encrypt($data, $cipher, $key, OPENSSL_RAW_DATA, $iv);
- 
-    return base64_encode($iv . $encrypted);
-}
-
-
-$encrypted_email = encryptData($admin_email, $cipher, $key);
-$encrypted_role = encryptData($admin_role, $cipher, $key);
-
+// These functions from conn.php ensure the KEY matches your login script
+$email_index = generateBlindIndex($admin_email);
+$encrypted_email = encryptData($admin_email);
+$encrypted_role = encryptData($admin_role);
 $hashed_password = password_hash($admin_pass, PASSWORD_DEFAULT);
 
-
-$sql = "INSERT INTO users (email, role, password) VALUES (?, ?, ?)";
+// We include the email_index column so login.php can find this row
+$sql = "INSERT INTO users (email, email_index, role, password) VALUES (?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
 
 if ($stmt) {
- 
-    $stmt->bind_param("sss", $encrypted_email, $encrypted_role, $hashed_password);
+    $stmt->bind_param("ssss", $encrypted_email, $email_index, $encrypted_role, $hashed_password);
 
     if ($stmt->execute()) {
-        echo "<h3>Admin user created successfully!</h3>";
-        echo "Email (Encrypted): " . $encrypted_email . "<br>";
-        echo "Role (Encrypted): " . $encrypted_role . "<br>";
-        echo "Password (Hashed): " . $hashed_password . "<br><br>";
-        echo "<a href='login.php'>Go to Login</a>";
+        echo "<div style='padding:20px; background:#d4edda; color:#155724; border:1px solid #c3e6cb;'>";
+        echo "<h3>Admin account created!</h3>";
+        echo "You can now log in with: <b>$admin_email</b>";
+        echo "</div>";
     } else {
         echo "Error: " . $stmt->error;
     }
-} else {
-    echo "Prepare failed: " . $conn->error;
 }
 ?>

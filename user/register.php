@@ -5,48 +5,38 @@ require_once '../app/conn.php';
 $error = ""; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email_input = trim($_POST["email"] ?? '');
-    $password_input = trim($_POST["password"] ?? '');
-    $role = "staff"; // Forced to staff for this specific page
+    $email_input = trim(strtolower($_POST["email"] ?? ''));
+    $password_input = $_POST["password"] ?? '';
+    $role = "staff"; 
 
     if (empty($email_input) || empty($password_input)) {
         $error = "Please fill in all fields.";
     } else {
-        // 1. Check if user already exists using Blind Index
         $email_index = generateBlindIndex($email_input);
         
-        $check_sql = "SELECT id FROM `users` WHERE email = ?";
-        $stmt = $conn->prepare($check_sql);
-        $stmt->bind_param("s", $email_index);
-        $stmt->execute();
-        $stmt->store_result();
-
-        if ($stmt->num_rows > 0) {
-            $error = "This email/username is already registered.";
+        // Check if exists
+        $check = $conn->prepare("SELECT id FROM users WHERE email_index = ?");
+        $check->bind_param("s", $email_index);
+        $check->execute();
+        if ($check->get_result()->num_rows > 0) {
+            $error = "Email already registered.";
         } else {
-            // 2. Prepare data for insertion
-            $encrypted_email = encryptData($email_input);
-            $encrypted_role = encryptData($role);
-            $hashed_password = password_hash($password_input, PASSWORD_DEFAULT);
+            $enc_email = encryptData($email_input);
+            $enc_role = encryptData($role);
+            $hash_pass = password_hash($password_input, PASSWORD_DEFAULT);
 
-            // 3. Insert new staff record
-            $insert_sql = "INSERT INTO `users` (email, email_index, password, role) VALUES (?, ?, ?, ?)";
-            $insert_stmt = $conn->prepare($insert_sql);
-            $insert_stmt->bind_param("ssss", $encrypted_email, $email, $hashed_password, $encrypted_role);
+            $sql = "INSERT INTO users (email, email_index, role, password) VALUES (?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssss", $enc_email, $email_index, $enc_role, $hash_pass);
 
-            if ($insert_stmt->execute()) {
-                echo "<script>alert('Staff Account Created Successfully!'); window.location.href='login.php';</script>";
+            if ($stmt->execute()) {
+                echo "<script>alert('Staff Created!'); window.location.href='login.php';</script>";
                 exit();
-            } else {
-                $error = "Registration failed. Please try again.";
             }
-            $insert_stmt->close();
         }
-        $stmt->close();
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,15 +70,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="alert alert-danger py-2 small border-0"><?= $error ?></div>
                 <?php endif; ?>
 
-                <form method="POST">
+                <form method="POST" autocomplete="off">
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Username / Email</label>
-                        <input type="text" name="email" class="form-control" placeholder="Enter username" required>
+                        <input type="text" name="email" class="form-control" placeholder="Enter username" required autocomplete="none">
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label fw-semibold small">Password</label>
-                        <input type="password" name="password" class="form-control" placeholder="Choose a password" required>
+                        <input type="password" name="password" class="form-control" placeholder="Choose a password" required autocomplete="new-password">
                     </div>
 
                     <div class="alert alert-light py-2 small border text-center mb-4">

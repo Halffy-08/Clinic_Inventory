@@ -1,6 +1,5 @@
 <?php
 // C:\xampp\htdocs\Clinic_Inventory\app\conn.php
-
 $servername = "localhost";
 $username = "root";
 $password = ""; 
@@ -14,9 +13,7 @@ if ($conn->connect_error) {
 
 // --- Encryption Settings ---
 $cipher = "aes-256-cbc";
-// CRITICAL: This key MUST be exactly 32 characters. 
-// If you change this, existing database data will be inaccessible.
-$key = "your-super-secret-32-char-key-!!"; 
+$key = "12345678901234567890123456789012"; // 32 chars
 
 if (!function_exists('encryptData')) {
     function encryptData($data) {
@@ -24,7 +21,6 @@ if (!function_exists('encryptData')) {
         $ivlen = openssl_cipher_iv_length($cipher);
         $iv = openssl_random_pseudo_bytes($ivlen);
         $ciphertext_raw = openssl_encrypt($data, $cipher, $key, OPENSSL_RAW_DATA, $iv);
-        // Pack IV and ciphertext together
         return base64_encode($iv . $ciphertext_raw);
     }
 }
@@ -35,7 +31,6 @@ if (!function_exists('decryptData')) {
         $c = base64_decode($data);
         $ivlen = openssl_cipher_iv_length($cipher);
         if (strlen($c) < $ivlen) return false; 
-        
         $iv = substr($c, 0, $ivlen);
         $ciphertext_raw = substr($c, $ivlen);
         return openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv);
@@ -45,8 +40,7 @@ if (!function_exists('decryptData')) {
 if (!function_exists('generateBlindIndex')) {
     function generateBlindIndex($data) {
         global $key;
-        // Creates a consistent hash for searching encrypted columns efficiently
-        return hash_hmac('sha256', $data, $key);
+        return hash_hmac('sha256', strtolower(trim($data)), $key);
     }
 }
 ?>
