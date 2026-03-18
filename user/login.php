@@ -150,12 +150,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <button type="submit" class="btn btn-inventory w-100 rounded-3 mb-3 d-flex align-items-center">
             <i class="bi bi-box-arrow-in-right me-3 fs-5"></i>Sign In to Portal
         </button>
-
-        <hr class="text-muted opacity-25">
-
-        <button type="button" class="btn-logout">
-            <i class="bi bi-door-open fs-5"></i> Cancel / Exit
-        </button>
     </form>
 </div>
 

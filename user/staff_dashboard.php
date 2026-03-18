@@ -37,7 +37,7 @@ $result = $conn->query($query);
     <h5 class="text-success fw-bold mb-4"><i class="bi bi-shield-check"></i> Staff Portal</h5>
     <ul class="nav flex-column">
         <li class="nav-item"><a class="nav-link active" href="dashboard.php"><i class="bi bi-box-seam me-2"></i> View Inventory</a></li>
-        <li class="nav-item mt-5"><a class="nav-link text-danger" href="../user/logout.php"><i class="bi bi-box-arrow-left"></i></i> Logout</a></li>
+        <li class="nav-item mt-5"><a class="nav-link text-danger" href="../user/register.php"><i class="bi bi-box-arrow-left"></i></i> Logout</a></li>
     </ul>
 </div>
 

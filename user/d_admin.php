@@ -2,9 +2,9 @@
 // Ensure this path is correct for your folder structure
 require "../app/conn.php"; 
 
-$admin_email = "admin@gmail.com";
-$admin_role = "admin";
-$admin_pass = "Admin123";
+//$admin_email = "admin@gmail.com";
+//$admin_role = "admin";
+//$admin_pass = "Admin123";
 
 // These functions from conn.php ensure the KEY matches your login script
 $email_index = generateBlindIndex($admin_email);
