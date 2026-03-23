@@ -6,7 +6,7 @@ $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email_input = trim(strtolower($_POST["email"] ?? ''));
-    $password_input = $_POST["password"] ?? '';
+    $password_input = htmlspecialchars( $_POST["password"] )?? '';
     $role = "staff"; 
 
     if (empty($email_input) || empty($password_input)) {
@@ -103,14 +103,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="alert alert-danger py-2 small border-0"><?= $error ?></div>
                 <?php endif; ?>
 
-                <form method="POST" autocomplete="off">
+                <form method="POST" >
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small text-muted">Email Address</label>
+                        <label class="form-label fw-semibold small ">Email Address</label>
                         <input type="text" name="email" class="form-control" placeholder="Enter email" required>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-semibold small text-muted">Password</label>
+                        <label class="form-label fw-semibold small ">Password</label>
                         <input type="password" name="password" class="form-control" placeholder="********" required>
                     </div>
 

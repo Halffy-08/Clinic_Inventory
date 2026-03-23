@@ -83,7 +83,7 @@ $result = $conn->query($query);
                         <form action="../admin/reduce_medicine.php" method="POST" onsubmit="return confirm('Use 1 unit of <?= htmlspecialchars($row['item_name']); ?>?')">
                             <input type="hidden" name="item_id" value="<?= $row['id']; ?>">
                             <button type="submit" class="btn btn-sm btn-warning btn-use rounded-pill px-3 shadow-sm">
-                                <i class="bi bi-person-dash me-1"></i> Patient Result
+                                <i class="bi bi-person-dash me-1"></i> Dispense
                             </button>
                         </form>
                     </td>

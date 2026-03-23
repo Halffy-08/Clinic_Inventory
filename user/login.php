@@ -2,7 +2,6 @@
 session_start();
 require_once '../app/conn.php';
 
-$error = ""; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // We use the $key and $cipher from conn.php automatically
@@ -10,7 +9,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password_input = $_POST["password"] ?? '';
 
     if (empty($email_input) || empty($password_input)) {
-        $error = "Please fill in all fields.";
+        ?>
+        <script>
+            alert("Please fill in all fields.");
+        </script>
+        <?php
     } else {
         // Fast search using the blind index
         $email_index = generateBlindIndex($email_input);
@@ -37,13 +40,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     echo "<script>alert('Welcome Admin!'); window.location.href='../admin/dashboard.php';</script>";
                     exit();
                 } else {
-                    $error = "Access Denied: Role not recognized.";
+                    ?>
+                    <script>
+                        alert("Access Denied: Role not recognized.")
+                    </script>
+                    <?php
                 }
             } else {
-                $error = "Incorrect password.";
+                ?>
+                    <script>
+                        alert("Incorrect password")
+                    </script>
+                    <?php
             }
         } else {
-            $error = "User not found. Please check your credentials.";
+            ?>
+                <script>
+                    alert("user not found pleass check your credential.")
+                </script>
+            <?php
         }
     }
 }
@@ -127,14 +142,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="login-card">
     <div class="d-flex align-items-center mb-4">
         <i class="bi bi-shield-check text-clinic-green fs-3 me-2"></i>
-        <h2 class="h4 mb-0 fw-bold text-clinic-green">Staff Portal</h2>
+        <h2 class="h4 mb-0 fw-bold text-clinic-green">Login your Credentials</h2>
     </div>
-    
-    <?php if(!empty($error)): ?>
-        <div class="alert alert-danger border-0 small text-center mb-4" style="background-color: #fff5f5; color: #c0392b;">
-            <?= htmlspecialchars($error) ?>
-        </div>
-    <?php endif; ?>
 
     <form method="POST" autocomplete="off">
         <div class="mb-3">

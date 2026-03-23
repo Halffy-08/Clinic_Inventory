@@ -1,5 +1,4 @@
 <?php
-// C:\xampp\htdocs\Clinic_Inventory\app\conn.php
 $servername = "localhost";
 $username = "root";
 $password = ""; 
@@ -11,7 +10,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// --- Encryption Settings ---
+//Encryption
 $cipher = "aes-256-cbc";
 $key = "12345678901234567890123456789012"; // 32 chars
 

@@ -167,7 +167,7 @@ $items = mysqli_query($conn, "SELECT * FROM inventory ORDER BY id DESC");
                             <div class="fw-bold text-dark"><?= htmlspecialchars($row['item_name']); ?></div>
                         </td>
                         <td>
-                            <?php if($row['qty'] <= 5): ?>
+                            <?php if($row['qty'] <= 30): ?>
                                 <span class="badge bg-danger bg-opacity-10 text-danger badge-stock">
                                     <i class="bi bi-exclamation-triangle me-1"></i> <?= $row['qty']; ?> Low Stock
                                 </span>
